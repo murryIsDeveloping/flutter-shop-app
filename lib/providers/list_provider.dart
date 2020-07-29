@@ -24,6 +24,11 @@ class ListProvider<T extends WithId> extends ChangeNotifier {
     notifyListeners();
   }
 
+  void updateById(String id, T item) {
+    _items.removeWhere((item) => item.id == id);
+    add(item);
+  }
+
   void add(T item) {
     _items.add(item);
     notifyListeners();

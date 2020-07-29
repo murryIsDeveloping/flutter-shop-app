@@ -15,9 +15,16 @@ class _EditProductScreenState extends State<EditProductScreen> {
   final _imageUrlFocusNode = FocusNode();
   final _imageUrlController = TextEditingController();
   final _form = GlobalKey<FormState>();
+  var _editing = false;
   var _isInit = true;
   var _editedProduct =
       ProductProvider(description: "", title: "", price: 0.0, imageUrl: "");
+
+  var _initValues = {
+    "title": "",
+    "description": "",
+    "price": "",
+  };
 
   @override
   void initState() {
@@ -33,8 +40,16 @@ class _EditProductScreenState extends State<EditProductScreen> {
       var itemId = ModalRoute.of(context).settings.arguments as String;
 
       if (itemId != null) {
+        _editing = true;
         _editedProduct =
             Provider.of<ProductsProvider>(context).findById(itemId);
+        _initValues = {
+          "title": _editedProduct.title,
+          "description": _editedProduct.description,
+          "price": _editedProduct.price.toString(),
+        };
+
+        _imageUrlController.text = _editedProduct.imageUrl;
       }
       _isInit = false;
     }
@@ -60,7 +75,12 @@ class _EditProductScreenState extends State<EditProductScreen> {
   void _saveForm() {
     if (_form.currentState.validate()) {
       _form.currentState.save();
-      Provider.of<ProductsProvider>(context).add(_editedProduct);
+      var provider = Provider.of<ProductsProvider>(context);
+      _editing
+          ? provider.updateById(
+              ModalRoute.of(context).settings.arguments as String,
+              _editedProduct)
+          : provider.add(_editedProduct);
       Navigator.of(context).pop();
     }
   }
@@ -69,7 +89,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Edit Product'),
+        title: Text(_editing ? 'Edit Product' : 'Add Product'),
         actions: <Widget>[
           Padding(
             padding: const EdgeInsets.only(right: 10),
@@ -87,6 +107,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
           child: ListView(
             children: [
               TextFormField(
+                initialValue: _initValues["title"],
                 decoration: InputDecoration(
                     labelText: "Title", icon: Icon(Icons.title)),
                 textInputAction: TextInputAction.next,
@@ -111,6 +132,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
                 },
               ),
               TextFormField(
+                initialValue: _initValues["price"],
                 focusNode: _priceFocusNode,
                 decoration: InputDecoration(
                   labelText: "Price",
@@ -138,6 +160,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
                 },
               ),
               TextFormField(
+                initialValue: _initValues["description"],
                 focusNode: _descriptionFocusNode,
                 decoration: InputDecoration(
                   labelText: "Description",
@@ -183,6 +206,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
                   ),
                   Expanded(
                     child: TextFormField(
+                      initialValue: _initValues["imageUrl"],
                       decoration: InputDecoration(labelText: "Image URL"),
                       textInputAction: TextInputAction.done,
                       keyboardType: TextInputType.url,
